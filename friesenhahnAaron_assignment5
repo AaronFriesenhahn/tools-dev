@@ -1,0 +1,164 @@
+import logging
+
+from PySide2 import QtWidgets, QtCore
+from shiboken2 import wrapInstance
+import maya.OpenMayaUI as omui
+import maya.cmds as cmds
+import pymel.core as pmc
+from pymel.core.system import Path
+
+log = logging.getLogger(__name__)
+
+polygon_base_chosen = int(0)
+polygon_scatter_chosen = int(0)
+
+
+def maya_main_window():
+    """Return the maya main window widget"""
+    main_window = omui.MQtUtil.mainWindow()
+    return wrapInstance(long(main_window), QtWidgets.QWidget)
+
+
+class ScatterToolGUI(QtWidgets.QDialog):
+    """Scatter Tool GUI Class"""
+    def __init__(self):
+        """Constructor"""
+        super(ScatterToolGUI, self).__init__(parent=maya_main_window())
+        self.setWindowTitle("Scatter Tool")
+        self.setMinimumWidth(500)
+        self.setMaximumHeight(200)
+        self.setWindowFlags(self.windowFlags() ^
+                            QtCore.Qt.WindowContextHelpButtonHint)
+        self.create_ui()
+        self.create_connections()
+
+    """Creates UI Layout"""
+    def create_ui(self):
+        """Title labels"""
+        self.title_lbl = QtWidgets.QLabel("Scatter Tool")
+        self.title_lbl.setStyleSheet("font: bold 20px")
+        """Polygon base"""
+        self.polygon_base_lbl = QtWidgets.QLabel("Select Polygon object for"
+                                                 " the base")
+        self.polygon_base_lay = self._create_polygon_base_ui()
+        """Polygon scatter"""
+        self.polygon_scatter_lbl = QtWidgets.QLabel("Select Polygon to Scatter"
+                                                    " on base")
+        self.polygon_scatter_lay = self._create_polygon_scatter_ui()
+        """Density"""
+        self.density_lbl = QtWidgets.QLabel("Density")
+        self.density_lay = self._create_density_ui()
+        """Scale"""
+        self.scale_lbl = QtWidgets.QLabel("Scale")
+        """Rotation"""
+        self.rotation_lbl = QtWidgets.QLabel("Rotation")
+        """Additional Feature"""
+
+        """Layout for buttons"""
+        self.button_lay = self._create_button_ui()
+        """Main layout for main window"""
+        self.main_lay = QtWidgets.QVBoxLayout()
+        self.main_lay.addWidget(self.title_lbl)
+        """Polygon base added to window"""
+        self.main_lay.addWidget(self.polygon_base_lbl)
+        self.main_lay.addLayout(self.polygon_base_lay)
+        """Polygon Scatter added to window"""
+        self.main_lay.addWidget(self.polygon_scatter_lbl)
+        self.main_lay.addLayout(self.polygon_scatter_lay)
+        """Density scroll bar added to window"""
+        self.main_lay.addWidget(self.density_lbl)
+        self.main_lay.addLayout(self.density_lay)
+        """Scale scroll bar added to window"""
+        self.main_lay.addWidget(self.scale_lbl)
+        """Rotation added to window"""
+        self.main_lay.addWidget(self.rotation_lbl)
+        """Adds stretch to window"""
+        self.main_lay.addStretch()
+        self.main_lay.addLayout(self.button_lay)
+        self.setLayout(self.main_lay)
+
+    """Creates polygon base layout"""
+    def _create_polygon_base_ui(self):
+        """self.polygon_base_le = QtWidgets.QLineEdit()"""
+        self.polygon_base_combobox = QtWidgets.QComboBox()
+        self.polygon_base_combobox.addItems(["Sphere", "Cube", "Cylinder",
+                                             "Cone", "Torus", "Plane", "Disc"])
+        layout = QtWidgets.QHBoxLayout()
+        """layout.addWidget(self.polygon_base_le)"""
+        layout.addWidget(self.polygon_base_combobox)
+        return layout
+
+    def _create_polygon_scatter_ui(self):
+        self.polygon_scatter_combobox = QtWidgets.QComboBox()
+        self.polygon_scatter_combobox.addItems(["Sphere", "Cube", "Cylinder",
+                                                "Cone", "Torus", "Plane", "Disc"])
+        layout = QtWidgets.QHBoxLayout()
+        layout.addWidget(self.polygon_scatter_combobox)
+        return layout
+
+    def _create_density_ui(self):
+        self.density_slider = QtWidgets.QSlider()
+        self.density_slider.setGeometry(30, 40, 200, 30)
+        self.density_slider.setTickInterval(10)
+        self.density_slider.setMinimum(0)
+        self.density_slider.setMaximum(100)
+        layout = QtWidgets.QHBoxLayout()
+        layout.addWidget(self.density_slider)
+        return layout
+
+    def create_connections(self):
+        self.polygon_base_combobox.currentIndexChanged.\
+            connect(self._spawn_polygon_base)
+        self.polygon_scatter_combobox.currentIndexChanged.\
+            connect(self._spawn_polygon_scatter)
+
+    """Creates a polygon_base based on item chosen in combo boxes"""
+    """and selects and deletes all other polygon_base that weren't chosen"""
+    def _spawn_polygon_base(self):
+        if polygon_base_chosen == 0:
+            if self.polygon_base_combobox.currentText() == "Cube":
+                cmds.polyCube(n='cube_base')
+                cmds.select('sphere_base')
+                cmds.delete('sphere_base')
+            if self.polygon_base_combobox.currentText() == "Sphere":
+                cmds.polySphere(n='sphere_base')
+                cmds.select('cube_base')
+                cmds.delete('cube_base')
+            """commands left to add:
+                spawning, selecting, and deleting each
+            cmds.polyCylinder();
+            cmds.polyCone();
+            cmds.polyTorus();
+            cmds.polyPlane();
+            cmds.polyDisc();"""
+
+    def _spawn_polygon_scatter(self):
+        if polygon_scatter_chosen == 0:
+            if self.polygon_scatter_combobox.currentText() == "Cube":
+                cmds.polyCube(n='cube_scatter')
+                cmds.select('sphere_scatter')
+                cmds.delete('sphere_scatter')
+            if self.polygon_scatter_combobox.currentText() == "Sphere":
+                cmds.polySphere(n='sphere_scatter')
+                cmds.select('cube_scatter')
+                cmds.delete('cube_scatter')
+            """commands left to add:
+                spawning, selecting, and deleting each
+            cmds.polyCylinder();
+            cmds.polyCone();
+            cmds.polyTorus();
+            cmds.polyPlane();
+            cmds.polyDisc();"""
+
+    """Creates button layout"""
+    def _create_button_ui(self):
+        self.save_btn = QtWidgets.QPushButton("Save")
+        self.save_increment_btn = QtWidgets.QPushButton("Save Increment")
+        layout = QtWidgets.QHBoxLayout()
+        layout.addWidget(self.save_btn)
+        layout.addWidget(self.save_increment_btn)
+        return layout
+
+
+class ScatterTool(object):
+    """Code for Scatter Tool."""
