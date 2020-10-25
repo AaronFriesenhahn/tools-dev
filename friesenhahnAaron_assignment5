@@ -1,3 +1,5 @@
+#Notes: Added and worked on the rest of the commands to add in polygons for the base and the scatter. Also added tool to maya shelf.
+
 import logging
 
 from PySide2 import QtWidgets, QtCore
@@ -91,7 +93,7 @@ class ScatterToolGUI(QtWidgets.QDialog):
     def _create_polygon_scatter_ui(self):
         self.polygon_scatter_combobox = QtWidgets.QComboBox()
         self.polygon_scatter_combobox.addItems(["Sphere", "Cube", "Cylinder",
-                                                "Cone", "Torus", "Plane", "Disc"])
+                                                "Cone", "Torus", "Plane"])
         layout = QtWidgets.QHBoxLayout()
         layout.addWidget(self.polygon_scatter_combobox)
         return layout
@@ -118,19 +120,91 @@ class ScatterToolGUI(QtWidgets.QDialog):
         if polygon_base_chosen == 0:
             if self.polygon_base_combobox.currentText() == "Cube":
                 cmds.polyCube(n='cube_base')
-                cmds.select('sphere_base')
-                cmds.delete('sphere_base')
+                if cmds.objExists('sphere_base'):
+                    cmds.select('sphere_base')
+                    cmds.delete('sphere_base')
+                if cmds.objExists('cylinder_base'):
+                    cmds.select('cylinder_base')
+                    cmds.delete('cylinder_base')
+                if cmds.objExists('cone_base'):
+                    cmds.select('cone_base')
+                    cmds.delete('cone_base')
+                if cmds.objExists('torus_base'):
+                    cmds.select('torus_base')
+                    cmds.delete('torus_base')
+                if cmds.objExists('plane_base'):
+                    cmds.select('plane_base')
+                    cmds.delete('plane_base')
             if self.polygon_base_combobox.currentText() == "Sphere":
                 cmds.polySphere(n='sphere_base')
+                if cmds.objExists('cube_base'):
+                    cmds.select('cube_base')
+                    cmds.delete('cube_base')
+                if cmds.objExists('cylinder_base'):
+                    cmds.select('cylinder_base')
+                    cmds.delete('cylinder_base')
+                if cmds.objExists('cone_base'):
+                    cmds.select('cone_base')
+                    cmds.delete('cone_base')
+                if cmds.objExists('torus_base'):
+                    cmds.select('torus_base')
+                    cmds.delete('torus_base')
+                if cmds.objExists('plane_base'):
+                    cmds.select('plane_base')
+                    cmds.delete('plane_base')
+            if self.polygon_base_combobox.currentText() == "Cylinder":
+                cmds.polyCylinder(n='cylinder_base')
+                if cmds.objExists('cube_base'):
+                    cmds.select('cube_base')
+                    cmds.delete('cube_base')
+                if cmds.objExists('sphere_base'):
+                    cmds.select('sphere_base')
+                    cmds.delete('sphere_base')
+                if cmds.objExists('cone_base'):
+                    cmds.select('cone_base')
+                    cmds.delete('cone_base')
+                if cmds.objExists('torus_base'):
+                    cmds.select('torus_base')
+                    cmds.delete('torus_base')
+                if cmds.objExists('plane_base'):
+                    cmds.select('plane_base')
+                    cmds.delete('plane_base')
+            if self.polygon_base_combobox.currentText() == "Cone":
+                cmds.polyCone(n='cone_base')
                 cmds.select('cube_base')
                 cmds.delete('cube_base')
-            """commands left to add:
-                spawning, selecting, and deleting each
-            cmds.polyCylinder();
-            cmds.polyCone();
-            cmds.polyTorus();
-            cmds.polyPlane();
-            cmds.polyDisc();"""
+                cmds.select('sphere_base')
+                cmds.delete('sphere_base')
+                cmds.select('cylinder_base')
+                cmds.delete('cylinder_base')
+                cmds.select('torus_base')
+                cmds.delete('torus_base')
+                cmds.select('plane_base')
+                cmds.delete('plane_base')
+            if self.polygon_base_combobox.currentText() == "Torus":
+                cmds.polyTorus(n='torus_base')
+                cmds.select('cube_base')
+                cmds.delete('cube_base')
+                cmds.select('sphere_base')
+                cmds.delete('sphere_base')
+                cmds.select('cylinder_base')
+                cmds.delete('cylinder_base')
+                cmds.select('cone_base')
+                cmds.delete('cone_base')
+                cmds.select('plane_base')
+                cmds.delete('plane_base')
+            if self.polygon_base_combobox.currentText() == "Plane":
+                cmds.polyPlane(n='plane_base')
+                cmds.select('cube_base')
+                cmds.delete('cube_base')
+                cmds.select('sphere_base')
+                cmds.delete('sphere_base')
+                cmds.select('cylinder_base')
+                cmds.delete('cylinder_base')
+                cmds.select('cone_base')
+                cmds.delete('cone_base')
+                cmds.select('torus_base')
+                cmds.delete('torus_base')
 
     def _spawn_polygon_scatter(self):
         if polygon_scatter_chosen == 0:
