@@ -1,4 +1,5 @@
 #Notes: Added line edit boxes for X, Y, and Z for Rotation of Scatter Objects. Not sure how to fix sliders or make it appear as I want it to.
+#Notes: Added comments for later additions to code.
 
 import logging
 
@@ -137,6 +138,16 @@ class ScatterToolGUI(QtWidgets.QDialog):
             connect(self._spawn_polygon_base)
         self.polygon_scatter_combobox.currentIndexChanged.\
             connect(self._spawn_polygon_scatter)
+        """self.x_box_le.currentText(Changed?)."""
+        """connect(self._rotate_polygon_scatter)"""
+
+    """Changes the Rotation of polygon_scatter objects based on the text"""
+    """in the line edit boxes of X, Y, and Z"""
+    def _rotate_polygon_scatter(self):
+        """add code to look for polygon_scatter objects and change"""
+        """their X, Y, and Z rotations"""
+        """if cmds.objExists(all polygon scatter objects):"""
+        """some code to change rotations"""
 
     """Creates a polygon_base based on item chosen in combo boxes"""
     """and selects and deletes all other polygon_base that weren't chosen"""
@@ -245,6 +256,8 @@ class ScatterToolGUI(QtWidgets.QDialog):
                     cmds.select('torus_base')
                     cmds.delete('torus_base')
 
+    """Creates a polygon_scatter based on item chosen in combo boxes"""
+    """and selects and deletes all other polygon_scatter that weren't chosen"""
     def _spawn_polygon_scatter(self):
         if polygon_scatter_chosen == 0:
             if self.polygon_scatter_combobox.currentText() == "Cube":
@@ -358,7 +371,3 @@ class ScatterToolGUI(QtWidgets.QDialog):
         layout.addWidget(self.save_btn)
         layout.addWidget(self.save_increment_btn)
         return layout
-
-
-class ScatterTool(object):
-    """Code for Scatter Tool."""
