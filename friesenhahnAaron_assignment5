@@ -1,6 +1,5 @@
-#Notes: Added functionality to density, scale, and rotation.
-#Notes: Need to add extra feature
-
+#Notes: Added a Group Scatter Objects feature that selects instanced objects of the scatter object
+#Notes: and the scatter object and puts them all under a group named 'scatter_group'
 import logging
 
 from PySide2 import QtWidgets, QtCore
@@ -69,7 +68,7 @@ class ScatterToolGUI(QtWidgets.QDialog):
         self.rotation_lbl = QtWidgets.QLabel("Rotation")
         self.rotation_lay = self._create_rotation_ui()
         """Additional Feature"""
-
+        self.group_scatter_lay = self._create_group_scatter()
         """Layout for buttons"""
         self.button_lay = self._create_button_ui()
         """Main layout for main window"""
@@ -92,6 +91,8 @@ class ScatterToolGUI(QtWidgets.QDialog):
         self.main_lay.addStretch()
         """Scatter_tool button added to window"""
         self.main_lay.addLayout(self.scatter_tool_button_lay)
+        """Copy and Paste button added to window"""
+        self.main_lay.addLayout(self.group_scatter_lay)
         # self.main_lay.addLayout(self.button_lay)
         self.setLayout(self.main_lay)
 
@@ -119,6 +120,12 @@ class ScatterToolGUI(QtWidgets.QDialog):
         self.scatter_tool_button = QtWidgets.QPushButton("Scatter")
         layout = QtWidgets.QHBoxLayout()
         layout.addWidget(self.scatter_tool_button)
+        return layout
+
+    def _create_group_scatter(self):
+        self.group_scatter_button = QtWidgets.QPushButton("Group Scatter Objects")
+        layout = QtWidgets.QHBoxLayout()
+        layout.addWidget(self.group_scatter_button)
         return layout
 
     def _create_density_scale_ui(self):
@@ -167,6 +174,7 @@ class ScatterToolGUI(QtWidgets.QDialog):
         self.polygon_base_button.clicked.connect(self._polygon_base_selected)
         self.polygon_scatter_button.clicked.connect(self._polygon_scatter_selected)
         self.scatter_tool_button.clicked.connect(self._scatter_tool_activated)
+        self.group_scatter_button.clicked.connect(self._group_scatter_button_activated)
 
     """Changes the Rotation of polygon_scatter objects based on the text"""
     """in the line edit boxes of X, Y, and Z"""
@@ -219,6 +227,9 @@ class ScatterToolGUI(QtWidgets.QDialog):
         cmds.rotate(rotatex, rotatey, rotatez, cmds.select('scatter_object*'))
 
     """Creates button layout"""
+
+    def _group_scatter_button_activated(self):
+        cmds.group('scatter_object*', self.polygon_scatter_le.text(), n='scatter_group')
 
     def _create_button_ui(self):
         self.save_btn = QtWidgets.QPushButton("Save")
