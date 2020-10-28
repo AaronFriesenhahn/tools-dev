@@ -1,6 +1,5 @@
-#Notes: Scrapped most of the code as I realized it didn't do exactly what the assignment wanted.
-#Notes: New code allows user to select a base and a scatter object, then create instances of the scatter object on the vertices of the base object.
-#Notes: Need to fix slider and add functionality to the rest of the UI.
+#Notes: Added functionality to density, scale, and rotation.
+#Notes: Need to add extra feature
 
 import logging
 
@@ -8,6 +7,7 @@ from PySide2 import QtWidgets, QtCore
 from shiboken2 import wrapInstance
 import maya.OpenMayaUI as omui
 import maya.cmds as cmds
+import random
 import pymel.core as pmc
 from pymel.core.system import Path
 
@@ -19,6 +19,9 @@ polygon_scatter_chosen = int(0)
 polygon_base = ''
 vtx = ''
 vertices = ''
+density = int(0)
+scale = int(0)
+
 
 
 def maya_main_window():
@@ -29,6 +32,7 @@ def maya_main_window():
 
 class ScatterToolGUI(QtWidgets.QDialog):
     """Scatter Tool GUI Class"""
+
     def __init__(self):
         """Constructor"""
         super(ScatterToolGUI, self).__init__(parent=maya_main_window())
@@ -42,25 +46,25 @@ class ScatterToolGUI(QtWidgets.QDialog):
         self.create_connections()
 
     """Creates UI Layout"""
+
     def create_ui(self):
         """Title labels"""
         self.title_lbl = QtWidgets.QLabel("Scatter Tool")
         self.title_lbl.setStyleSheet("font: bold 20px")
         """Polygon base"""
         self.polygon_base_lbl = QtWidgets.QLabel("Select a Unique object for"
-                                                 " the base")
+                                                 " the base, then click Choose Base")
         self.polygon_base_lay = self._create_polygon_base_ui()
         """Polygon scatter"""
         self.polygon_scatter_lbl = QtWidgets.QLabel("Select a Unique object to Scatter"
-                                                    " on base")
+                                                    " on base, then click Choose Scatter")
         self.polygon_scatter_lay = self._create_polygon_scatter_ui()
         """Scatter Tool Button"""
         self.scatter_tool_button_lay = self._create_scatter_button()
-        """Density"""
-        self.density_lbl = QtWidgets.QLabel("Density")
-        self.density_lay = self._create_density_ui()
-        """Scale"""
-        self.scale_lbl = QtWidgets.QLabel("Scale")
+        """Density and Scale Header"""
+        self.density_scale_header_lay = self._create_density_scale_header()
+        """Density and Scale Layout"""
+        self.density_scale_lay = self._create_density_scale_ui()
         """Rotation"""
         self.rotation_lbl = QtWidgets.QLabel("Rotation")
         self.rotation_lay = self._create_rotation_ui()
@@ -77,22 +81,22 @@ class ScatterToolGUI(QtWidgets.QDialog):
         """Polygon Scatter added to window"""
         self.main_lay.addWidget(self.polygon_scatter_lbl)
         self.main_lay.addLayout(self.polygon_scatter_lay)
-        """Scatter_tool button added to window"""
-        self.main_lay.addLayout(self.scatter_tool_button_lay)
-        """Density scroll bar added to window"""
-        self.main_lay.addWidget(self.density_lbl)
-        self.main_lay.addLayout(self.density_lay)
-        """Scale scroll bar added to window"""
-        self.main_lay.addWidget(self.scale_lbl)
+        """Density and Scale Header layout"""
+        self.main_lay.addLayout(self.density_scale_header_lay)
+        """Density and Scale SpinBox added to window"""
+        self.main_lay.addLayout(self.density_scale_lay)
         """Rotation added to window"""
         self.main_lay.addWidget(self.rotation_lbl)
         self.main_lay.addLayout(self.rotation_lay)
         """Adds stretch to window"""
         self.main_lay.addStretch()
-        #self.main_lay.addLayout(self.button_lay)
+        """Scatter_tool button added to window"""
+        self.main_lay.addLayout(self.scatter_tool_button_lay)
+        # self.main_lay.addLayout(self.button_lay)
         self.setLayout(self.main_lay)
 
     """Creates polygon base layout"""
+
     def _create_polygon_base_ui(self):
         self.polygon_base_le = QtWidgets.QLineEdit('Unique object for the base')
         self.polygon_base_le.setFixedWidth(200)
@@ -117,13 +121,23 @@ class ScatterToolGUI(QtWidgets.QDialog):
         layout.addWidget(self.scatter_tool_button)
         return layout
 
-    def _create_density_ui(self):
-        self.density_slider = QtWidgets.QSlider()
-        self.density_slider.setTickInterval(10)
-        self.density_slider.setMinimum(0)
-        self.density_slider.setMaximum(100)
-        layout = QtWidgets.QVBoxLayout()
-        layout.addWidget(self.density_slider)
+    def _create_density_scale_ui(self):
+        self.density_sbx = QtWidgets.QSpinBox()
+        self.density_sbx.setButtonSymbols(QtWidgets.QAbstractSpinBox.PlusMinus)
+        self.density_sbx.setFixedWidth(225)
+        self.scale_le = QtWidgets.QLineEdit('Enter Scale size of scatter object')
+        self.scale_le.setFixedWidth(225)
+        layout = QtWidgets.QHBoxLayout()
+        layout.addWidget(self.density_sbx)
+        layout.addWidget(self.scale_le)
+        return layout
+
+    def _create_density_scale_header(self):
+        self.density_lbl = QtWidgets.QLabel('Density')
+        self.scale_lbl = QtWidgets.QLabel('Scale')
+        layout = QtWidgets.QHBoxLayout()
+        layout.addWidget(self.density_lbl)
+        layout.addWidget(self.scale_lbl)
         return layout
 
     def _create_rotation_ui(self):
@@ -176,15 +190,36 @@ class ScatterToolGUI(QtWidgets.QDialog):
         # cmds.polyCube(n='cube_scatter')
         obj = self.polygon_base_le.text()
         obj2 = self.polygon_scatter_le.text()
+        density = float(self.density_sbx.text())
+        scale = float(self.scale_le.text())
+        rotatex = self.x_box_le.text() + 'deg'
+        rotatey = self.y_box_le.text() + 'deg'
+        rotatez = self.z_box_le.text() + 'deg'
+        print('Density')
+        print(density)
+        print('Scale')
+        print(scale)
 
         vtx = cmds.ls(obj + '.vtx[*]', fl=True)
         cmds.select(vtx)
-        for item in vtx:
-            position = cmds.pointPosition(item)
+        print('Vertices')
+        print(len(vtx))
+        vtx_size = len(vtx)
+        #print(random.sample(vtx, vtx_size % density))
+
+        for x in range(vtx_size):
+            print(vtx[x])
+            if x%density:
+                continue
+            #print(len(item))
+            position = cmds.pointPosition(vtx[x])
             scatter_instance = cmds.instance(obj2, n='scatter_object')
             cmds.move(position[0], position[1], position[2], scatter_instance, worldSpace=True)
+        cmds.scale(scale, scale, scale, cmds.select('scatter_object*'))
+        cmds.rotate(rotatex, rotatey, rotatez, cmds.select('scatter_object*'))
 
     """Creates button layout"""
+
     def _create_button_ui(self):
         self.save_btn = QtWidgets.QPushButton("Save")
         self.save_increment_btn = QtWidgets.QPushButton("Save Increment")
