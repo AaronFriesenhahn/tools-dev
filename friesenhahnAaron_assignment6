@@ -1,5 +1,6 @@
-#Notes: Working on naming convention for scattered objects. Testing to see what works.
-
+#Notes: Reverted back to a previous code. Couldn't quite figure out how to allow the user to keep pressing the scatter button.
+#Notes: Decided to stick with the scatter tool only working once, since the scale and roation randomness seems to only apply to the first iteration.
+#Notes: Therefore, the user has to delete the instanced objects and scatter again to get a new batch.
 import logging
 import re
 
@@ -259,7 +260,6 @@ class ScatterToolGUI(QtWidgets.QDialog):
         rotationsx = [rotatex, rotatexmax]
         rotationsy = [rotatey, rotateymax]
         rotationsz = [rotatez, rotatezmax]
-        scattered = 0;
 
         vtx = cmds.ls(obj + '.vtx[*]', fl=True)
         cmds.select(vtx)
@@ -284,22 +284,15 @@ class ScatterToolGUI(QtWidgets.QDialog):
             print(x)
 
             position = cmds.pointPosition(vtx[x])
-            scatter_instance = cmds.instance(obj2,
-                                             n='scatter_object' + str(scattered) + str(x))
-            cmds.move(position[0], position[1], position[2],
-                      scatter_instance, worldSpace=True)
-            cmds.scale(chosenscale, chosenscale, chosenscale,
-                       cmds.select('scatter_object' + str(scattered) + str(x)))
-            cmds.rotate(chosenrotationsx, chosenrotationsy, chosenrotationsz,
-                        cmds.select('scatter_object' + str(scattered) + str(x)))
-        scattered +=1;
+            scatter_instance = cmds.instance(obj2, n='scatter_object' + str(x))
+            cmds.move(position[0], position[1], position[2], scatter_instance, worldSpace=True)
+            cmds.scale(chosenscale, chosenscale, chosenscale, cmds.select('scatter_object' + str(x)))
+            cmds.rotate(chosenrotationsx, chosenrotationsy, chosenrotationsz, cmds.select('scatter_object' + str(x)))
 
     """Creates button layout"""
 
     def _group_scatter_button_activated(self):
-        group = 0;
-        cmds.group('scatter_object*', n='scatter_group' + str(group))
-        group +=1;
+        cmds.group('scatter_object*', n='scatter_group')
 
     def _create_button_ui(self):
         self.save_btn = QtWidgets.QPushButton("Save")
