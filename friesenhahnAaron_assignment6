@@ -1,5 +1,4 @@
-#Notes: Added maximum values for scale and rotation
-#Notes: Changing naming convention to allow the user to press scatter multiple times, perhaps.
+#Notes: Working on naming convention for scattered objects. Testing to see what works.
 
 import logging
 import re
@@ -286,13 +285,13 @@ class ScatterToolGUI(QtWidgets.QDialog):
 
             position = cmds.pointPosition(vtx[x])
             scatter_instance = cmds.instance(obj2,
-                                             n='scatter_object' + str(x) +str(scattered))
+                                             n='scatter_object' + str(scattered) + str(x))
             cmds.move(position[0], position[1], position[2],
                       scatter_instance, worldSpace=True)
             cmds.scale(chosenscale, chosenscale, chosenscale,
-                       cmds.select('scatter_object' + str(x) + str(scattered)))
+                       cmds.select('scatter_object' + str(scattered) + str(x)))
             cmds.rotate(chosenrotationsx, chosenrotationsy, chosenrotationsz,
-                        cmds.select('scatter_object' + str(x) + str(scattered)))
+                        cmds.select('scatter_object' + str(scattered) + str(x)))
         scattered +=1;
 
     """Creates button layout"""
