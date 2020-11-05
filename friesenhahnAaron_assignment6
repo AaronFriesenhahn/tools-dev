@@ -1,6 +1,7 @@
-#Notes: Reverted back to a previous code. Couldn't quite figure out how to allow the user to keep pressing the scatter button.
-#Notes: Decided to stick with the scatter tool only working once, since the scale and roation randomness seems to only apply to the first iteration.
+#Notes: Removed some useless code.
+#Notes: Decided to stick with the scatter tool only working once, since the scale and roation randomness seems to only apply to the first iteration of instances.
 #Notes: Therefore, the user has to delete the instanced objects and scatter again to get a new batch.
+#Notes: Unless I delete old iteration and replace it with new iteration.
 import logging
 import re
 
@@ -13,17 +14,6 @@ import pymel.core as pmc
 from pymel.core.system import Path
 
 log = logging.getLogger(__name__)
-
-polygon_base_chosen = int(0)
-polygon_scatter_chosen = int(0)
-
-polygon_base = ''
-vtx = ''
-vertices = ''
-density = int(0)
-scale = int(0)
-
-
 
 def maya_main_window():
     """Return the maya main window widget"""
@@ -288,6 +278,7 @@ class ScatterToolGUI(QtWidgets.QDialog):
             cmds.move(position[0], position[1], position[2], scatter_instance, worldSpace=True)
             cmds.scale(chosenscale, chosenscale, chosenscale, cmds.select('scatter_object' + str(x)))
             cmds.rotate(chosenrotationsx, chosenrotationsy, chosenrotationsz, cmds.select('scatter_object' + str(x)))
+
 
     """Creates button layout"""
 
