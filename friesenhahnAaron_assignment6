@@ -1,7 +1,6 @@
 #Notes: Removed some useless code.
-#Notes: Decided to stick with the scatter tool only working once, since the scale and roation randomness seems to only apply to the first iteration of instances.
-#Notes: Therefore, the user has to delete the instanced objects and scatter again to get a new batch.
-#Notes: Unless I delete old iteration and replace it with new iteration.
+#Notes: Scatter objects now are replaced with new scatter objects each time Scatter button is pressed.
+#Notes: Added Normal checkbox to UI. Does not have functioning code yet.
 import logging
 import re
 
@@ -70,6 +69,10 @@ class ScatterToolGUI(QtWidgets.QDialog):
         """Rotation"""
         self.rotation_lbl = QtWidgets.QLabel("Rotation")
         self.rotation_lay = self._create_rotation_ui()
+        """Normal Checkbox"""
+        self.normal_header_lbl = QtWidgets.QLabel("Checkbox for scatter on normal")
+        self.normal_header_lbl.setStyleSheet("font: bold 15px")
+        self.normal_lay = self._create_normal_checkbox()
         """Additional Feature"""
         self.group_scatter_lay = self._create_group_scatter()
         """Layout for buttons"""
@@ -83,9 +86,6 @@ class ScatterToolGUI(QtWidgets.QDialog):
         """Polygon Scatter added to window"""
         self.main_lay.addWidget(self.polygon_scatter_lbl)
         self.main_lay.addLayout(self.polygon_scatter_lay)
-        """Density and Scale Header layout"""
-
-        #self.main_lay.addLayout(self.density_scale_header_lay)
         """Density and Scale SpinBox added to window"""
         self.main_lay.addWidget(self.density_header_lbl)
         self.main_lay.addWidget(self.density_lbl)
@@ -93,10 +93,12 @@ class ScatterToolGUI(QtWidgets.QDialog):
         self.main_lay.addWidget(self.random_lbl)
         self.main_lay.addWidget(self.scale_lbl)
         self.main_lay.addLayout(self.scale_randomizer_header_lay)
-        #self.main_lay.addLayout(self.density_scale_lay)
         """Rotation added to window"""
         self.main_lay.addWidget(self.rotation_lbl)
         self.main_lay.addLayout(self.rotation_lay)
+        """Add Normal checkbox to window"""
+        self.main_lay.addWidget(self.normal_header_lbl)
+        self.main_lay.addLayout(self.normal_lay)
         """Adds stretch to window"""
         self.main_lay.addStretch()
         """Scatter_tool button added to window"""
@@ -151,7 +153,6 @@ class ScatterToolGUI(QtWidgets.QDialog):
 
     def _create_scale_ui(self):
         self.scale_min_lbl = QtWidgets.QLabel('Minimum')
-        #self.scale_min_lbl.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignVCenter)
         self.scale_le = QtWidgets.QLineEdit('Enter minimum Scale size')
         self.scale_le.setFixedWidth(150)
         self.scale_max_lbl = QtWidgets.QLabel('Maximum')
@@ -164,13 +165,19 @@ class ScatterToolGUI(QtWidgets.QDialog):
         layout.addWidget(self.scale_le2, 1, 2)
         return layout
 
-    #def _create_density_scale_header(self):
-        #self.density_lbl = QtWidgets.QLabel('Density')
-        #self.scale_lbl = QtWidgets.QLabel('Scale')
-        #layout = QtWidgets.QHBoxLayout()
-        #layout.addWidget(self.density_lbl)
-        #layout.addWidget(self.scale_lbl)
-        #return layout
+    def _create_normal_checkbox(self):
+        self.normal_cbx = QtWidgets.QCheckBox()
+        self.normal_lbl = QtWidgets.QLabel("Normal")
+        self.normal_spacer = QtWidgets.QLabel(' ')
+        layout = QtWidgets.QGridLayout()
+        layout.addWidget(self.normal_lbl, 1, 0)
+        layout.addWidget(self.normal_cbx, 1, 1)
+        layout.addWidget(self.normal_spacer, 1, 2)
+        layout.addWidget(self.normal_spacer, 1, 3)
+        layout.addWidget(self.normal_spacer, 1, 4)
+        layout.addWidget(self.normal_spacer, 1, 5)
+        layout.addWidget(self.normal_spacer, 1, 6)
+        return layout
 
     def _create_rotation_ui(self):
         self.x_box_le = QtWidgets.QLineEdit('1')
@@ -228,6 +235,9 @@ class ScatterToolGUI(QtWidgets.QDialog):
         self.polygon_scatter_le.setText(scatter_selected[0])
 
     def _scatter_tool_activated(self):
+        if cmds.objExists('scatter_object*'):
+            cmds.select('scatter_object*')
+            cmds.delete()
         print("Pressed button")
         print(self.polygon_base_le.text())
         # cmds.polyCube(n='cube_scatter')
