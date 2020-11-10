@@ -1,7 +1,6 @@
-#Notes: Density now works as intended:
-#Notes: Added code to find percentage of objects to place based on vertices,
-#Notes: Then choose a random sample of vertices based on density percentage
-#Notes: and place scatter objects on those sampled vertices.
+#Notes: Normal checkbox has funtionality
+#Notes: Added code to spawn instances of scatter object on normals of vertices
+#Notes: Just need to add code to scatter on only selected vertices
 import logging
 import re
 import math
@@ -105,7 +104,7 @@ class ScatterToolGUI(QtWidgets.QDialog):
         self.main_lay.addStretch()
         """Scatter_tool button added to window"""
         self.main_lay.addLayout(self.scatter_tool_button_lay)
-        """Copy and Paste button added to window"""
+        """Group Scatter Objects button added to window"""
         self.main_lay.addLayout(self.group_scatter_lay)
         # self.main_lay.addLayout(self.button_lay)
         self.setLayout(self.main_lay)
@@ -219,6 +218,7 @@ class ScatterToolGUI(QtWidgets.QDialog):
         self.polygon_scatter_button.clicked.connect(self._polygon_scatter_selected)
         self.scatter_tool_button.clicked.connect(self._scatter_tool_activated)
         self.group_scatter_button.clicked.connect(self._group_scatter_button_activated)
+        self.normal_cbx.clicked.connect(self._normal_cbx_clicked)
 
     """Changes the Rotation of polygon_scatter objects based on the text"""
     """in the line edit boxes of X, Y, and Z"""
@@ -235,6 +235,11 @@ class ScatterToolGUI(QtWidgets.QDialog):
     def _polygon_scatter_selected(self):
         scatter_selected = cmds.ls(selection=True)
         self.polygon_scatter_le.setText(scatter_selected[0])
+
+    def _normal_cbx_clicked(self):
+        print('Checkbox clicked!')
+        normal_cbx_state = self.normal_cbx.isChecked()
+        print(normal_cbx_state)
 
     def _scatter_tool_activated(self):
         if cmds.objExists('scatter_object*'):
@@ -281,7 +286,7 @@ class ScatterToolGUI(QtWidgets.QDialog):
         print(vtx_list)
 
         for x in range(len(vtx_list)):
-            print(vtx[x])
+            print(vtx_list[x])
             #print(len(item))
             chosenscale = random.uniform(scale, scalemax)
             chosenrotationsx = str(randomrotationsx) + 'deg'
@@ -296,12 +301,29 @@ class ScatterToolGUI(QtWidgets.QDialog):
             print('Index # in vertices list')
             print(x)
 
-            position = cmds.pointPosition(vtx[x])
-            scatter_instance = cmds.instance(obj2, n='scatter_object' + str(x))
-            cmds.move(position[0], position[1], position[2], scatter_instance, worldSpace=True)
-            cmds.scale(chosenscale, chosenscale, chosenscale, cmds.select('scatter_object' + str(x)))
-            cmds.rotate(chosenrotationsx, chosenrotationsy, chosenrotationsz, cmds.select('scatter_object' + str(x)))
-
+            if self.normal_cbx.isChecked() == False:
+                print('Checked!')
+                position = cmds.pointPosition(vtx_list[x])
+                print(position)
+                scatter_instance = cmds.instance(obj2, n='scatter_object' + str(x))
+                cmds.move(position[0], position[1], position[2], scatter_instance, worldSpace=True)
+                cmds.scale(chosenscale, chosenscale, chosenscale, cmds.select('scatter_object' + str(x)))
+                cmds.rotate(chosenrotationsx, chosenrotationsy, chosenrotationsz,
+                            cmds.select('scatter_object' + str(x)))
+            if self.normal_cbx.isChecked() == True:
+                print('Unchecked!')
+                # get current position of the move manipulator
+                pos = cmds.pointPosition(vtx_list[x])
+                cmds.select(vtx_list[x])
+                # get the current selection
+                selection = cmds.ls(selection=True)
+                target = cmds.instance(obj2, n='scatter_object' + str(x))
+                cmds.move(pos[0], pos[1], pos[2], target)
+                cmds.scale(chosenscale, chosenscale, chosenscale, cmds.select('scatter_object' + str(x)))
+                cmds.rotate(chosenrotationsx, chosenrotationsy, chosenrotationsz,
+                            cmds.select('scatter_object' + str(x)))
+                constr = cmds.normalConstraint(selection, target, aimVector=(0, 0, 1), worldUpType=0)
+                cmds.delete(constr)
 
     """Creates button layout"""
 
