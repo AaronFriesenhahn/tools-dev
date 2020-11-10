@@ -1,6 +1,6 @@
-#Notes: Normal checkbox has funtionality
-#Notes: Added code to spawn instances of scatter object on normals of vertices
-#Notes: Just need to add code to scatter on only selected vertices
+#Notes: Added a checkbox to only use selected vertices
+#Notes: Added code to check if the selected vertices checkbox has been check and scatter on only those selected vertices
+#Notes: Restructured the Scatter Tool windo to be more user friendly for order of choosing objects
 import logging
 import re
 import math
@@ -42,10 +42,21 @@ class ScatterToolGUI(QtWidgets.QDialog):
         """Title labels"""
         self.title_lbl = QtWidgets.QLabel("Scatter Tool")
         self.title_lbl.setStyleSheet("font: bold 20px")
+        """Warning"""
+        self.base_description_lbl = QtWidgets.QLabel("DO NOT select vertices if you"
+                                                     " have an object chosen.")
+        self.base_description_lbl.setStyleSheet("font: bold 10px")
+        self.base_description_lbl2 = QtWidgets.QLabel("DO NOT select an object if you"
+                                                      " only want certain vertices.")
+        self.base_description_lbl2.setStyleSheet("font: bold 10px")
         """Polygon base"""
         self.polygon_base_lbl = QtWidgets.QLabel("Select a Unique object for"
                                                  " the base, then click Choose Base")
         self.polygon_base_lay = self._create_polygon_base_ui()
+        """Vertices Checkbox"""
+        self.vertices_header_lbl = QtWidgets.QLabel("Checkbox for using only selected vertices")
+        self.vertices_header_lbl.setStyleSheet("font: bold 15px")
+        self.vertices_lay = self._create_vertices_checkbox()
         """Polygon scatter"""
         self.polygon_scatter_lbl = QtWidgets.QLabel("Select a Unique object to Scatter"
                                                     " on base, then click Choose Scatter")
@@ -81,12 +92,16 @@ class ScatterToolGUI(QtWidgets.QDialog):
         """Main layout for main window"""
         self.main_lay = QtWidgets.QVBoxLayout()
         self.main_lay.addWidget(self.title_lbl)
-        """Polygon base added to window"""
-        self.main_lay.addWidget(self.polygon_base_lbl)
-        self.main_lay.addLayout(self.polygon_base_lay)
         """Polygon Scatter added to window"""
         self.main_lay.addWidget(self.polygon_scatter_lbl)
         self.main_lay.addLayout(self.polygon_scatter_lay)
+        """Polygon base added to window"""
+        self.main_lay.addWidget(self.polygon_base_lbl)
+        self.main_lay.addWidget(self.base_description_lbl2)
+        self.main_lay.addLayout(self.polygon_base_lay)
+        """Vertices base added to window"""
+        self.main_lay.addWidget(self.vertices_header_lbl)
+        self.main_lay.addLayout(self.vertices_lay)
         """Density and Scale SpinBox added to window"""
         self.main_lay.addWidget(self.density_header_lbl)
         self.main_lay.addWidget(self.density_lbl)
@@ -127,6 +142,20 @@ class ScatterToolGUI(QtWidgets.QDialog):
         layout = QtWidgets.QHBoxLayout()
         layout.addWidget(self.polygon_scatter_le)
         layout.addWidget(self.polygon_scatter_button)
+        return layout
+
+    def _create_vertices_checkbox(self):
+        self.vertices_cbx = QtWidgets.QCheckBox()
+        self.vertices_cbx_lbl = QtWidgets.QLabel("Use selected vertices, not all vertices")
+        self.vertices_spacer = QtWidgets.QLabel(' ')
+        layout = QtWidgets.QGridLayout()
+        layout.addWidget(self.vertices_cbx_lbl, 1, 0)
+        layout.addWidget(self.vertices_cbx, 1, 1)
+        layout.addWidget(self.vertices_spacer, 1, 2)
+        layout.addWidget(self.vertices_spacer, 1, 3)
+        layout.addWidget(self.vertices_spacer, 1, 4)
+        layout.addWidget(self.vertices_spacer, 1, 5)
+        layout.addWidget(self.vertices_spacer, 1, 6)
         return layout
 
     def _create_scatter_button(self):
@@ -215,6 +244,7 @@ class ScatterToolGUI(QtWidgets.QDialog):
 
     def create_connections(self):
         self.polygon_base_button.clicked.connect(self._polygon_base_selected)
+        self.vertices_cbx.clicked.connect(self._vertices_base_selected)
         self.polygon_scatter_button.clicked.connect(self._polygon_scatter_selected)
         self.scatter_tool_button.clicked.connect(self._scatter_tool_activated)
         self.group_scatter_button.clicked.connect(self._group_scatter_button_activated)
@@ -231,6 +261,11 @@ class ScatterToolGUI(QtWidgets.QDialog):
     def _polygon_base_selected(self):
         base_selected = cmds.ls(selection=True)
         self.polygon_base_le.setText(base_selected[0])
+
+    def _vertices_base_selected(self):
+        print('Checkbox clicked!')
+        vertices_cbx_state = self.vertices_cbx.isChecked()
+        print(vertices_cbx_state)
 
     def _polygon_scatter_selected(self):
         scatter_selected = cmds.ls(selection=True)
@@ -250,6 +285,7 @@ class ScatterToolGUI(QtWidgets.QDialog):
         #cmds.polyCube(n='cube_scatter')
         obj = self.polygon_base_le.text()
         obj2 = self.polygon_scatter_le.text()
+        obj3 = cmds.ls(sl=True, fl=True)
         scale = float(self.scale_le.text())
         scalemax = float(self.scale_le2.text())
         rotatex = int(self.x_box_le.text())
@@ -268,8 +304,11 @@ class ScatterToolGUI(QtWidgets.QDialog):
 
         #find all the vertices of obj (base object to be have scatterd objects on)
         #and select them all
-        vtx = cmds.ls(obj + '.vtx[*]', fl=True)
-        cmds.select(vtx)
+        if self.vertices_cbx.isChecked() == False:
+            vtx = cmds.ls(obj + '.vtx[*]', fl=True)
+        if self.vertices_cbx.isChecked() == True:
+            vtx = obj3
+        #cmds.select(vtx)
         print('Vertices')
         vtx_size = len(vtx)
         print(vtx_size)
