@@ -1,8 +1,10 @@
-#Notes: Removed some useless code.
-#Notes: Scatter objects now are replaced with new scatter objects each time Scatter button is pressed.
-#Notes: Added Normal checkbox to UI. Does not have functioning code yet.
+#Notes: Density now works as intended:
+#Notes: Added code to find percentage of objects to place based on vertices,
+#Notes: Then choose a random sample of vertices based on density percentage
+#Notes: and place scatter objects on those sampled vertices.
 import logging
 import re
+import math
 
 from PySide2 import QtWidgets, QtCore
 from shiboken2 import wrapInstance
@@ -238,13 +240,11 @@ class ScatterToolGUI(QtWidgets.QDialog):
         if cmds.objExists('scatter_object*'):
             cmds.select('scatter_object*')
             cmds.delete()
-        print("Pressed button")
-        print(self.polygon_base_le.text())
-        # cmds.polyCube(n='cube_scatter')
+        print("Pressed Scatter Tool button")
+        #print(self.polygon_base_le.text())
+        #cmds.polyCube(n='cube_scatter')
         obj = self.polygon_base_le.text()
         obj2 = self.polygon_scatter_le.text()
-        densitytxt = self.density_sbx.text()
-        density = int(re.sub("%", "", densitytxt))
         scale = float(self.scale_le.text())
         scalemax = float(self.scale_le2.text())
         rotatex = int(self.x_box_le.text())
@@ -261,26 +261,39 @@ class ScatterToolGUI(QtWidgets.QDialog):
         rotationsy = [rotatey, rotateymax]
         rotationsz = [rotatez, rotatezmax]
 
+        #find all the vertices of obj (base object to be have scatterd objects on)
+        #and select them all
         vtx = cmds.ls(obj + '.vtx[*]', fl=True)
         cmds.select(vtx)
         print('Vertices')
-        print(len(vtx))
         vtx_size = len(vtx)
-        #print(random.sample(vtx, vtx_size % density))
+        print(vtx_size)
+        #display density value and figure out how to spread scatter objects
+        #based on density
+        densitytxt = self.density_sbx.text()
+        density = float(re.sub("%", "", densitytxt))
+        densityscatter = int(math.ceil(vtx_size*(density/100)))
+        print('Density')
+        print(density)
+        print(densityscatter)
+        vtx_list = random.sample(vtx, densityscatter)
+        print('List of Vertices')
+        print(vtx_list)
 
-        for x in range(vtx_size):
+        for x in range(len(vtx_list)):
             print(vtx[x])
-            if x%density:
-                continue
             #print(len(item))
             chosenscale = random.uniform(scale, scalemax)
             chosenrotationsx = str(randomrotationsx) + 'deg'
             chosenrotationsy = str(randomrotationsy) + 'deg'
             chosenrotationsz = str(randomrotationsz) + 'deg'
+            print('Scale')
             print(chosenscale)
+            print('Rotations')
             print(chosenrotationsx)
             print(chosenrotationsy)
             print(chosenrotationsz)
+            print('Index # in vertices list')
             print(x)
 
             position = cmds.pointPosition(vtx[x])
