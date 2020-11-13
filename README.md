@@ -1,2 +1,2 @@
 # tools-dev
-Python scripts associated with our tool development class
+Python scripts associated with scripting for animation class
